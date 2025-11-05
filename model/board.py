@@ -1,28 +1,35 @@
-from tile import Tile
-from piece import Piece
+from .tile import Tile
+from .piece import Piece
 
 class Board:
+    MAX_COLUMNS = 7
+    MAX_ROWS = 9
+
     def __init__(self):
         self.grid = self.initialize_empty_board()
         self.initialize_special_tiles()
         self.initialize_pieces()
 
     def initialize_empty_board(self):
-        # Fill the board with empty, land (default) tiles.
-        return [[Tile() for _ in range(9)] for _ in range(7)]
+        # Fill the board with empty, land (default) tiles. 
+        # The double list is filled with 7 lists, each containing 9 elements. 
+        # Each inner list represents a column from top to bottom.
+        return [[Tile() for _ in range(self.MAX_ROWS)] for _ in range(self.MAX_COLUMNS)]
 
     def initialize_special_tiles(self):
-        self.grid[3][0] = Tile(Tile.DEN) # northern den 
-        self.grid[3][8] = Tile(Tile.DEN) # southern den
+        # player 1 den 
+        self.grid[3][0] = Tile(Tile.PLAYER_1_DEN, None)
+        # player 2 den
+        self.grid[3][8] = Tile(Tile.PLAYER_2_DEN, None) 
         
-        # northern den traps
-        self.grid[2][0] = Tile(Tile.TRAP, None) 
-        self.grid[3][1] = Tile(Tile.TRAP, None) 
-        self.grid[3][1] = Tile(Tile.TRAP, None) 
-        # southern den traps
-        self.grid[3][7] = Tile(Tile.TRAP, None)  
-        self.grid[2][8] = Tile(Tile.TRAP, None) 
-        self.grid[4][8] = Tile(Tile.TRAP, None) 
+        # player 1 traps
+        self.grid[2][0] = Tile(Tile.TRAP, None, Tile.PLAYER_1) 
+        self.grid[3][1] = Tile(Tile.TRAP, None, Tile.PLAYER_1) 
+        self.grid[4][0] = Tile(Tile.TRAP, None, Tile.PLAYER_1) 
+        # player 2 traps
+        self.grid[3][7] = Tile(Tile.TRAP, None, Tile.PLAYER_2)  
+        self.grid[2][8] = Tile(Tile.TRAP, None, Tile.PLAYER_2) 
+        self.grid[4][8] = Tile(Tile.TRAP, None, Tile.PLAYER_2) 
 
         # left river
         self.grid[1][3] = Tile(Tile.WATER, None) 
@@ -42,25 +49,25 @@ class Board:
 
 
     def initialize_pieces(self):
-        # southern pieces
-        self.place_piece(Piece('Elephant'), (0, 6))
-        self.place_piece(Piece('Tiger'), (0, 8))
-        self.place_piece(Piece('Cat'), (1, 7))
-        self.place_piece(Piece('Wolf'), (2, 6))
-        self.place_piece(Piece('Leopard'), (4, 6))
-        self.place_piece(Piece('Dog'), (5, 7))
-        self.place_piece(Piece('Rat'), (6, 6))
-        self.place_piece(Piece('Lion'), (6, 8))
+        # player 1 pieces
+        self.place_piece(Piece('Elephant', Piece.PLAYER_1), (6, 2))
+        self.place_piece(Piece('Tiger', Piece.PLAYER_1), (6, 0))
+        self.place_piece(Piece('Cat', Piece.PLAYER_1), (5, 1))
+        self.place_piece(Piece('Wolf', Piece.PLAYER_1), (4, 2))
+        self.place_piece(Piece('Leopard', Piece.PLAYER_1), (2, 2))
+        self.place_piece(Piece('Dog', Piece.PLAYER_1), (1, 1))
+        self.place_piece(Piece('Rat', Piece.PLAYER_1), (0, 2))
+        self.place_piece(Piece('Lion', Piece.PLAYER_1), (0, 0))
 
-        # northern pieces
-        self.place_piece(Piece('Elephant'), (6, 2))
-        self.place_piece(Piece('Tiger'), (6, 0))
-        self.place_piece(Piece('Cat'), (5, 1))
-        self.place_piece(Piece('Wolf'), (4, 2))
-        self.place_piece(Piece('Leopard'), (2, 2))
-        self.place_piece(Piece('Dog'), (1, 1))
-        self.place_piece(Piece('Rat'), (0, 2))
-        self.place_piece(Piece('Lion'), (0, 0))
+        # player 2 pieces
+        self.place_piece(Piece('Elephant', Piece.PLAYER_2), (0, 6))
+        self.place_piece(Piece('Tiger', Piece.PLAYER_2), (0, 8))
+        self.place_piece(Piece('Cat', Piece.PLAYER_2), (1, 7))
+        self.place_piece(Piece('Wolf', Piece.PLAYER_2), (2, 6))
+        self.place_piece(Piece('Leopard', Piece.PLAYER_2), (4, 6))
+        self.place_piece(Piece('Dog', Piece.PLAYER_2), (5, 7))
+        self.place_piece(Piece('Rat', Piece.PLAYER_2), (6, 6))
+        self.place_piece(Piece('Lion', Piece.PLAYER_2), (6, 8))
         
         
 
@@ -79,6 +86,19 @@ class Board:
         x, y = position
         return self.grid[x][y].piece
 
-    def display_board(self):
-        for row in self.grid:
-            print(' '.join([str(tile) for tile in row]))
+    # def display_board(self):
+    #     print("Current board state:")
+        
+    #     for c in range(self.MAX_COLUMNS):
+    #         for r in range(self.MAX_ROWS):
+    #             print(self.grid[1][1].__str__)
+
+        
+        
+        # for i in range(len(self.grid)):
+        #     for j in range(len(self.grid[i])):
+        #         tile : Tile = self.grid[i][j]
+        #         piece_str = tile.__str__  # Use the Tile __str__ function
+        #         print(f"({i},{j}): {piece_str}", end=' | ')
+        #     print("")  # newline after every row
+        # print("-" * 40)
