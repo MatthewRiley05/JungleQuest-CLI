@@ -75,30 +75,14 @@ class Board:
         x, y = position
         tile : Tile = self.grid[x][y]
         if tile.is_empty():
-            if tile.tile_type == Tile.LAND:  # Pieces can only occupy land tiles
+            if tile.tile_type == Tile.LAND or (tile.tile_type == Tile.WATER and piece.name == 'Rat'):  # Pieces can only occupy land tiles
                 tile.place_piece(piece)
             # WIP: rat special rules, etc
-
+            
         else:
-            print("You cannot place this piece on this tile.")
+            print("Illegal move. Please try again.")
 
     def get_piece(self, position):
         x, y = position
         return self.grid[x][y].piece
 
-    # def display_board(self):
-    #     print("Current board state:")
-        
-    #     for c in range(self.MAX_COLUMNS):
-    #         for r in range(self.MAX_ROWS):
-    #             print(self.grid[1][1].__str__)
-
-        
-        
-        # for i in range(len(self.grid)):
-        #     for j in range(len(self.grid[i])):
-        #         tile : Tile = self.grid[i][j]
-        #         piece_str = tile.__str__  # Use the Tile __str__ function
-        #         print(f"({i},{j}): {piece_str}", end=' | ')
-        #     print("")  # newline after every row
-        # print("-" * 40)

@@ -1,3 +1,4 @@
+from .tile import Tile
 class Piece:
     # pieces can capture other pieces of the same or lower ranks
     # the rat may capture the elephant.
@@ -26,11 +27,17 @@ class Piece:
     def __str__(self):
         return f"{self.name[0]}"
 
-    def can_capture(self, opponent) -> bool:
-        if self.name == 'Rat' and opponent.name == 'Elephant':
-            return True
+    def can_capture(self, self_tile : Tile, opponent, opponent_tile : Tile) -> bool:
+        if self.name == 'Rat':
+            if opponent.name == 'Elephant' and self_tile.tile_type != Tile.WATER:
+                return True
+            if opponent.name == 'Rat' and ((self_tile.tile_type == Tile.LAND and opponent_tile.tile_type == Tile.LAND) or (self_tile.tile_type == Tile.WATER and opponent_tile.tile_type == Tile.WATER)):
+                return True
+
         if self.name == 'Elephant' and opponent.name == 'Rat':
             return False
-        if self.rank < opponent.rank:
-            return False
-        return True
+        
+        if self.rank >= opponent.rank:
+            return True
+         
+        return False
