@@ -5,6 +5,22 @@ class Board:
     MAX_COLUMNS = 7
     MAX_ROWS = 9
 
+    PLAYER_1_DEN_POSITION : tuple[int, int] = (3, 0)
+    PLAYER_2_DEN_POSITION : tuple[int, int] = (3, 8)
+
+
+    # BOARD
+    # # A B C D E F G
+    # 1
+    # 2
+    # 3
+    # 4
+    # 5
+    # 6
+    # 7
+    # 8
+    # 9
+
     def __init__(self):
         self.grid = self.initialize_empty_board()
         self.initialize_special_tiles()
@@ -18,9 +34,9 @@ class Board:
 
     def initialize_special_tiles(self):
         # player 1 den 
-        self.grid[3][0] = Tile(Tile.PLAYER_1_DEN, None)
+        self.grid[self.PLAYER_1_DEN_POSITION[0]][self.PLAYER_1_DEN_POSITION[1]] = Tile(Tile.PLAYER_1_DEN, None)
         # player 2 den
-        self.grid[3][8] = Tile(Tile.PLAYER_2_DEN, None) 
+        self.grid[self.PLAYER_2_DEN_POSITION[0]][self.PLAYER_2_DEN_POSITION[1]] = Tile(Tile.PLAYER_2_DEN, None) 
         
         # player 1 traps
         self.grid[2][0] = Tile(Tile.TRAP, None, Tile.PLAYER_1) 
@@ -77,12 +93,19 @@ class Board:
         if tile.is_empty():
             if tile.tile_type == Tile.LAND or (tile.tile_type == Tile.WATER and piece.name == 'Rat'):  # Pieces can only occupy land tiles
                 tile.place_piece(piece)
-            # WIP: rat special rules, etc
-            
         else:
-            print("Illegal move. Please try again.")
+            print("Cannot place piece here.")
+
+    
+    def remove_piece(self, position: tuple[int,int]):
+        x, y = position
+        tile : Tile = self.grid[x][y]
+        tile.piece = None
 
     def get_piece(self, position):
         x, y = position
         return self.grid[x][y].piece
 
+    def get_tile(self, position):
+        x, y = position
+        return self.grid[x][y]

@@ -1,5 +1,3 @@
-from .piece import Piece
-
 class Tile:
     LAND = 'L'
     PLAYER_1_DEN = 'D1'
@@ -7,12 +5,11 @@ class Tile:
     TRAP = 'T'
     WATER = 'W'
 
-    # possible owners
-    PLAYER_1 = "P1"
-    PLAYER_2 = "P2"
-    NEUTRAL = ""
+    PLAYER_1 = 0
+    PLAYER_2 = 1
+    NEUTRAL = -1
 
-    def __init__(self, tile_type=LAND, piece : Piece = None, owner : str = NEUTRAL):
+    def __init__(self, tile_type=LAND, piece = None, owner : str = -1):
         self.tile_type = tile_type  # Type of the tile (land, den, trap, water)
         self.piece = piece  # Piece occupying the tile (empty. rat, cat, dog, .., elephant)
         self.owner = owner
@@ -20,15 +17,23 @@ class Tile:
     def is_empty(self):
         return self.piece is None
 
+    def get_piece(self):
+        return self.piece
     
-    def place_piece(self, piece : Piece):
+    def place_piece(self, piece, ):
         self.piece = piece
 
-    def remove_piece(self):
-        self.piece = None
+    # def remove_piece(self):
+    #     self.piece = None
 
     def __str__(self):
+        
         piece_name_and_owner = "None."
         if self.is_empty() == False:
-            piece_name_and_owner = self.piece.name + " (" + self.piece.owner + ")."
-        return str(self.tile_type) + ", " + piece_name_and_owner 
+            piece_name_and_owner = self.piece.name + " (P" + str(self.piece.owner + 1) + ")"
+
+        padding = ""
+
+        for i in range(11 - len(piece_name_and_owner)):
+            padding += " "
+        return str(self.tile_type) + ", " + piece_name_and_owner + padding + "|"

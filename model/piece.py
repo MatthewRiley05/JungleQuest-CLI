@@ -15,8 +15,8 @@ class Piece:
     }
 
     # possible owners
-    PLAYER_1 = "P1"
-    PLAYER_2 = "P2"
+    PLAYER_1 = 0
+    PLAYER_2 = 1
 
 
     def __init__(self, name : str, owner : str):

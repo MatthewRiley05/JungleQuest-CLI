@@ -8,8 +8,7 @@ class Game:
         self.players = [Player(player1_name), Player(player2_name)]
         self.current_turn = 0
 
-    def setup_game(self):
-        self.board 
+
 
     def switch_turn(self):
         self.current_turn = (self.current_turn + 1) % 2
