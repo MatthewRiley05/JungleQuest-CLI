@@ -28,7 +28,7 @@ class Controller:
                 print("Terminating game session...")
                 break
 
-            # Attempt to take the turn
+            # attempt to take a turn
             if not self.take_turn(move):  
                 continue  # await new input from the user
             
@@ -72,6 +72,10 @@ class Controller:
         if self.game.current_turn == 1 and to_position == self.game.board.PLAYER_2_DEN_POSITION:
             return False
 
+        # Check if a non-rat piece tried to move into a water tile.
+        if piece.name != 'Rat' and self.game.board.get_tile(to_position).tile_type == Tile.WATER:
+            return False 
+        
         return True
     
     def convert_to_coordinates(self, position):
@@ -109,8 +113,9 @@ class Controller:
             print("Invalid move. A tile with no piece was selected. Please try again.")
             return
         
+
         if self.is_valid_move(from_position, to_position) == False:
-            print("Invalid move. You may only move your own piece by one tile horizontally/vertically, and never into your its own den.")
+            print("Invalid move. You may only move your own piece by one tile horizontally/vertically, and never into your its own den or water (except rats)")
             return 
 
         # Check if the target tile is occupied
@@ -124,12 +129,11 @@ class Controller:
             #     # Capture logic: remove the opponent's piece
             #     self.capture_piece(to_position)
 
-        # Move the piece
-
+        # Move piece
         self.game.board.remove_piece(from_position)
         self.game.board.place_piece(piece_to_move, to_position)
 
-        # End the turn
+        # End turn
         self.end_turn()
     
     # WIP
@@ -137,7 +141,8 @@ class Controller:
         # Logic to handle capturing an opponent's piece
         print(f"Captured piece at {position}")
 
+
     def end_turn(self):
         # Switch to the next player
         self.game.current_turn = (self.game.current_turn + 1) % len(self.game.players)
-        print(f"{self.game.players[self.game.current_turn].name}'s turn.")
+        print(f"Now is {self.game.players[self.game.current_turn].name}'s turn.")

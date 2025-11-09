@@ -27,13 +27,12 @@ class Tile:
     #     self.piece = None
 
     def __str__(self):
-        
-        piece_name_and_owner = "None."
-        if self.is_empty() == False:
-            piece_name_and_owner = self.piece.name + " (P" + str(self.piece.owner + 1) + ")"
-
+        piece_name_and_owner = ""
         padding = ""
 
-        for i in range(11 - len(piece_name_and_owner)):
+        if self.is_empty() == False:
+            piece_name_and_owner = ", " + self.piece.name + "(P" + str(self.piece.owner + 1) + ")"
+
+        for i in range(12 - len(piece_name_and_owner)):
             padding += " "
-        return str(self.tile_type) + ", " + piece_name_and_owner + padding + "|"
+        return str(self.tile_type) + piece_name_and_owner + padding + "|"
