@@ -92,10 +92,7 @@ class Board:
         x, y = position
         tile: Tile = self.grid[x][y]
         if tile.is_empty():
-            if tile.tile_type == Tile.LAND or (
-                tile.tile_type == Tile.WATER and piece.name == "Rat"
-            ):  # Pieces can only occupy land tiles
-                tile.place_piece(piece)
+            tile.place_piece(piece)
         else:
             print("Cannot place piece here.")
 
