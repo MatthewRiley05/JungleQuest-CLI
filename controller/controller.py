@@ -20,7 +20,8 @@ class Controller:
         self.play_game()
 
     def play_game(self):
-        while True:
+        game_over = False
+        while not game_over:
             self.view.display_board(self.game.board)
             self.view.display_turn(self.game.players[self.game.current_turn].name)
 
@@ -30,10 +31,15 @@ class Controller:
                 break
 
             # attempt to take a turn
-            if not self.take_turn(move):
-                continue  # await new input from the user
-
-            self.game.switch_turn()
+            result = self.take_turn(move)
+            if result is None:
+                continue  # await new input from the user (invalid move)
+            elif result is True:
+                # Game won!
+                game_over = True
+            else:
+                # Valid move but game continues
+                self.game.switch_turn()
 
     def parse_move_input(self, input: str):
         pattern = r"^[A-Ga-g][1-9] to [A-Ga-g][1-9]$"  # valid characters include A-G, a-g, 1-9
@@ -71,9 +77,7 @@ class Controller:
         piece: Piece = self.game.board.get_piece(from_position)
         # Check if the piece is owned by the current player.
         # note: current_turn = 0 if player 1's turn, 1 if player 2's turn.
-        if self.game.current_turn != piece.owner and (
-            self.game.current_turn != piece.owner
-        ):
+        if self.game.current_turn != piece.owner:
             return False
 
         # Check if the move leads to the player's own den
@@ -126,45 +130,102 @@ class Controller:
         from_position, to_position = self.parse_move_input(move)
 
         if not from_position or not to_position:
-            return  # for invalid inputs
+            return None  # for invalid inputs
 
         current_player = self.game.current_turn  # 0 for player 1, 1 for player 2
         piece_to_move: Piece = self.game.board.get_piece(from_position)
 
         if piece_to_move is None:
             print("Invalid move. A tile with no piece was selected. Please try again.")
-            return
+            return None
 
         if not self.is_valid_move(from_position, to_position):
             print(
                 "Invalid move. You may only move your own piece by one tile horizontally/vertically, and never into its own den or water (except rats)"
             )
-            return
+            return None
 
         # Check if the target tile is occupied
         target_tile: Tile = self.game.board.get_tile(to_position)
-        if target_tile is not None:
-            if target_tile.get_piece() is not None and ():
+        target_piece: Piece = target_tile.get_piece()
+
+        if target_piece is not None:
+            # Check if trying to capture own piece
+            if target_piece.owner == current_player:
                 print(
                     "Invalid move: You cannot move to a tile occupied by your own piece."
                 )
-                return
-            # WIP
-            # else:
-            #     # Capture logic: remove the opponent's piece
-            #     self.capture_piece(to_position)
+                return None
+            # Opponent's piece - check if capture is valid
+            elif not piece_to_move.can_capture(
+                self.game.board.get_tile(from_position), target_piece, target_tile
+            ):
+                print("Invalid move: Your piece cannot capture the opponent's piece.")
+                return None
+            # Valid capture - remove the opponent's piece
+            print(
+                f"{self.game.players[current_player].name} captured {target_piece.name}!"
+            )
+            self.game.board.remove_piece(to_position)
 
         # Move piece
         self.game.board.remove_piece(from_position)
         self.game.board.place_piece(piece_to_move, to_position)
 
-        # End turn
-        self.end_turn()
+        # Check for win conditions
+        if self.check_win_condition(to_position):
+            return True
 
-    # WIP
-    def capture_piece(self, position):
-        # Logic to handle capturing an opponent's piece
-        print(f"Captured piece at {position}")
+        # Valid move, game continues
+        return False
+
+    def check_win_condition(self, to_position: tuple[int, int]) -> bool:
+        """
+        Check if the game has been won.
+        Win conditions:
+        1. A player moves into the opponent's den
+        2. A player captures all opponent's pieces
+        """
+        current_player = self.game.current_turn
+
+        # Win Condition 1: Player entered opponent's den
+        if current_player == 0 and to_position == self.game.board.PLAYER_2_DEN_POSITION:
+            self.view.display_board(self.game.board)
+            print(
+                f"\n🎉 {self.game.players[current_player].name} wins by entering the opponent's den! 🎉"
+            )
+            return True
+        elif (
+            current_player == 1 and to_position == self.game.board.PLAYER_1_DEN_POSITION
+        ):
+            self.view.display_board(self.game.board)
+            print(
+                f"\n🎉 {self.game.players[current_player].name} wins by entering the opponent's den! 🎉"
+            )
+            return True
+
+        # Win Condition 2: Opponent has no pieces left
+        opponent = 1 - current_player
+        opponent_pieces_count = self.count_player_pieces(opponent)
+
+        if opponent_pieces_count == 0:
+            self.view.display_board(self.game.board)
+            print(
+                f"\n🎉 {self.game.players[current_player].name} wins by capturing all opponent pieces! 🎉"
+            )
+            return True
+
+        return False
+
+    def count_player_pieces(self, player: int) -> int:
+        """Count the number of pieces a player has on the board."""
+        count = 0
+        for column in self.game.board.grid:
+            for tile in column:
+                piece = tile.get_piece()
+                if piece is not None and piece.owner == player:
+                    count += 1
+        return count
 
     def end_turn(self):
         # Switch to the next player
