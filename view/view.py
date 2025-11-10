@@ -43,7 +43,7 @@ class View:
             "Cat": "C",
             "Dog": "D",
             "Wolf": "W",
-            "Leopard": "P",  # P for Panther/Leopard
+            "Leopard": "P",  # P for Leopard
             "Tiger": "T",
             "Lion": "L",
             "Elephant": "E",
