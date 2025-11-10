@@ -72,18 +72,12 @@ class Controller:
 
         # Check if the movement is only one tile upwards, downwards, left or right.
         if row_difference + col_difference != 1:
-            print(
-                f"Debug: Invalid distance - row_diff={row_difference}, col_diff={col_difference}"
-            )
             return False
 
         piece: Piece = self.game.board.get_piece(from_position)
         # Check if the piece is owned by the current player.
         # note: current_turn = 0 if player 1's turn, 1 if player 2's turn.
         if self.game.current_turn != piece.owner:
-            print(
-                f"Debug: Wrong owner - current_turn={self.game.current_turn}, piece.owner={piece.owner}"
-            )
             return False
 
         # Check if the move leads to the player's own den
