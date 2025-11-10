@@ -103,7 +103,6 @@ class Controller:
         # row = int(position[1]) - 1  # Convert '1'-'9' to 0-8
         # return (row, column) if 0 <= row < 7 and 0 <= column < 9 else (None, None)
         column = -1
-        row = -1
         match position[0].upper():
             case "A":
                 column = 0
