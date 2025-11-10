@@ -33,60 +33,32 @@ class Board:
         return [[Tile() for _ in range(self.MAX_ROWS)] for _ in range(self.MAX_COLUMNS)]
 
     def initialize_special_tiles(self):
-        # player 1 den
-        self.grid[self.PLAYER_1_DEN_POSITION[0]][self.PLAYER_1_DEN_POSITION[1]] = Tile(
-            Tile.PLAYER_1_DEN, None
-        )
-        # player 2 den
-        self.grid[self.PLAYER_2_DEN_POSITION[0]][self.PLAYER_2_DEN_POSITION[1]] = Tile(
-            Tile.PLAYER_2_DEN, None
-        )
+        # Dens
+        self.grid[3][0] = Tile(Tile.PLAYER_1_DEN, None)
+        self.grid[3][8] = Tile(Tile.PLAYER_2_DEN, None)
 
-        # player 1 traps
-        self.grid[2][0] = Tile(Tile.TRAP, None, Tile.PLAYER_1)
-        self.grid[3][1] = Tile(Tile.TRAP, None, Tile.PLAYER_1)
-        self.grid[4][0] = Tile(Tile.TRAP, None, Tile.PLAYER_1)
-        # player 2 traps
-        self.grid[3][7] = Tile(Tile.TRAP, None, Tile.PLAYER_2)
-        self.grid[2][8] = Tile(Tile.TRAP, None, Tile.PLAYER_2)
-        self.grid[4][8] = Tile(Tile.TRAP, None, Tile.PLAYER_2)
+        # Traps (3 surrounding each den)
+        for col in [2, 3, 4]:
+            row = 0 if col != 3 else 1
+            self.grid[col][row] = Tile(Tile.TRAP, None, Tile.PLAYER_1)
+            row = 8 if col != 3 else 7
+            self.grid[col][row] = Tile(Tile.TRAP, None, Tile.PLAYER_2)
 
-        # left river
-        self.grid[1][3] = Tile(Tile.WATER, None)
-        self.grid[1][4] = Tile(Tile.WATER, None)
-        self.grid[1][5] = Tile(Tile.WATER, None)
-        self.grid[2][3] = Tile(Tile.WATER, None)
-        self.grid[2][4] = Tile(Tile.WATER, None)
-        self.grid[2][5] = Tile(Tile.WATER, None)
-
-        # right river
-        self.grid[4][3] = Tile(Tile.WATER, None)
-        self.grid[4][4] = Tile(Tile.WATER, None)
-        self.grid[4][5] = Tile(Tile.WATER, None)
-        self.grid[5][3] = Tile(Tile.WATER, None)
-        self.grid[5][4] = Tile(Tile.WATER, None)
-        self.grid[5][5] = Tile(Tile.WATER, None)
+        # Rivers (two 2x3 sections)
+        for col in [1, 2, 4, 5]:
+            for row in [3, 4, 5]:
+                self.grid[col][row] = Tile(Tile.WATER, None)
 
     def initialize_pieces(self):
-        # player 1 pieces
-        self.place_piece(Piece("Elephant", Piece.PLAYER_1), (6, 2))
-        self.place_piece(Piece("Tiger", Piece.PLAYER_1), (6, 0))
-        self.place_piece(Piece("Cat", Piece.PLAYER_1), (5, 1))
-        self.place_piece(Piece("Wolf", Piece.PLAYER_1), (4, 2))
-        self.place_piece(Piece("Leopard", Piece.PLAYER_1), (2, 2))
-        self.place_piece(Piece("Dog", Piece.PLAYER_1), (1, 1))
-        self.place_piece(Piece("Rat", Piece.PLAYER_1), (0, 2))
-        self.place_piece(Piece("Lion", Piece.PLAYER_1), (0, 0))
-
-        # player 2 pieces
-        self.place_piece(Piece("Elephant", Piece.PLAYER_2), (0, 6))
-        self.place_piece(Piece("Tiger", Piece.PLAYER_2), (0, 8))
-        self.place_piece(Piece("Cat", Piece.PLAYER_2), (1, 7))
-        self.place_piece(Piece("Wolf", Piece.PLAYER_2), (2, 6))
-        self.place_piece(Piece("Leopard", Piece.PLAYER_2), (4, 6))
-        self.place_piece(Piece("Dog", Piece.PLAYER_2), (5, 7))
-        self.place_piece(Piece("Rat", Piece.PLAYER_2), (6, 6))
-        self.place_piece(Piece("Lion", Piece.PLAYER_2), (6, 8))
+        # Piece positions: (name, col_p1, row_p1, col_p2, row_p2)
+        pieces = [
+            ("Elephant", 6, 2, 0, 6), ("Tiger", 6, 0, 0, 8), ("Cat", 5, 1, 1, 7),
+            ("Wolf", 4, 2, 2, 6), ("Leopard", 2, 2, 4, 6), ("Dog", 1, 1, 5, 7),
+            ("Rat", 0, 2, 6, 6), ("Lion", 0, 0, 6, 8)
+        ]
+        for name, c1, r1, c2, r2 in pieces:
+            self.place_piece(Piece(name, Piece.PLAYER_1), (c1, r1))
+            self.place_piece(Piece(name, Piece.PLAYER_2), (c2, r2))
 
     def place_piece(self, piece: Piece, position: tuple[int, int]):
         x, y = position
