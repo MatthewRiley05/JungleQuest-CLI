@@ -29,6 +29,10 @@ class Piece:
         return f"{self.name[0]}"
 
     def can_capture(self, self_tile: Tile, opponent, opponent_tile: Tile) -> bool:
+        # Trap rule: If your opponent is in your trap, you can capture it
+        if opponent_tile.tile_type == Tile.TRAP and opponent_tile.owner == self.owner:
+            return True
+ 
         if self.name == "Rat":
             if opponent.name == "Elephant" and self_tile.tile_type != Tile.WATER:
                 return True
