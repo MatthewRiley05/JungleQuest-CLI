@@ -52,9 +52,14 @@ class Board:
     def initialize_pieces(self):
         # Piece positions: (name, col_p1, row_p1, col_p2, row_p2)
         pieces = [
-            ("Elephant", 6, 2, 0, 6), ("Tiger", 6, 0, 0, 8), ("Cat", 5, 1, 1, 7),
-            ("Wolf", 4, 2, 2, 6), ("Leopard", 2, 2, 4, 6), ("Dog", 1, 1, 5, 7),
-            ("Rat", 0, 2, 6, 6), ("Lion", 0, 0, 6, 8)
+            ("Elephant", 6, 2, 0, 6),
+            ("Tiger", 6, 0, 0, 8),
+            ("Cat", 5, 1, 1, 7),
+            ("Wolf", 4, 2, 2, 6),
+            ("Leopard", 2, 2, 4, 6),
+            ("Dog", 1, 1, 5, 7),
+            ("Rat", 0, 2, 6, 6),
+            ("Lion", 0, 0, 6, 8),
         ]
         for name, c1, r1, c2, r2 in pieces:
             self.place_piece(Piece(name, Piece.PLAYER_1), (c1, r1))

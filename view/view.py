@@ -3,8 +3,14 @@ from model.board import Board
 
 class View:
     PIECE_ABBREV = {
-        "Rat": "rat", "Cat": "cat", "Dog": "dog", "Wolf": "wlf",
-        "Leopard": "lpd", "Tiger": "tgr", "Lion": "lio", "Elephant": "elp"
+        "Rat": "rat",
+        "Cat": "cat",
+        "Dog": "dog",
+        "Wolf": "wlf",
+        "Leopard": "lpd",
+        "Tiger": "tgr",
+        "Lion": "lio",
+        "Elephant": "elp",
     }
     TILE_SYMBOLS = {"L": "  ", "D1": "D1", "D2": "D2", "T": "TR", "W": "~~"}
 

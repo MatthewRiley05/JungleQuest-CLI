@@ -7,9 +7,9 @@ from .player import Player
 from .tile import Tile
 
 __all__ = [
-    'Board',
-    'Game',
-    'Piece',
-    'Player',
-    'Tile',
+    "Board",
+    "Game",
+    "Piece",
+    "Player",
+    "Tile",
 ]

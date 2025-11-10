@@ -76,28 +76,44 @@ class Controller:
     def _is_river_jump_clear(self, from_pos, to_pos, is_horizontal):
         """Check if river jump path is clear of rats."""
         if is_horizontal:
-            col_range = range(min(from_pos[0], to_pos[0]) + 1, max(from_pos[0], to_pos[0]))
-            return all(self.game.board.get_tile((col, from_pos[1])).tile_type == Tile.WATER and 
-                      self.game.board.get_tile((col, from_pos[1])).is_empty() 
-                      for col in col_range)
+            col_range = range(
+                min(from_pos[0], to_pos[0]) + 1, max(from_pos[0], to_pos[0])
+            )
+            return all(
+                self.game.board.get_tile((col, from_pos[1])).tile_type == Tile.WATER
+                and self.game.board.get_tile((col, from_pos[1])).is_empty()
+                for col in col_range
+            )
         else:
-            row_range = range(min(from_pos[1], to_pos[1]) + 1, max(from_pos[1], to_pos[1]))
-            return all(self.game.board.get_tile((from_pos[0], row)).tile_type == Tile.WATER and 
-                      self.game.board.get_tile((from_pos[0], row)).is_empty() 
-                      for row in row_range)
+            row_range = range(
+                min(from_pos[1], to_pos[1]) + 1, max(from_pos[1], to_pos[1])
+            )
+            return all(
+                self.game.board.get_tile((from_pos[0], row)).tile_type == Tile.WATER
+                and self.game.board.get_tile((from_pos[0], row)).is_empty()
+                for row in row_range
+            )
 
-    def is_valid_move(self, from_position: tuple[int, int], to_position: tuple[int, int]) -> bool:
+    def is_valid_move(
+        self, from_position: tuple[int, int], to_position: tuple[int, int]
+    ) -> bool:
         piece: Piece = self.game.board.get_piece(from_position)
-        
+
         # Lion/Tiger river jumping (3 cols horizontal or 4 rows vertical)
         if piece.name in ["Lion", "Tiger"]:
             from_col, from_row = from_position
             to_col, to_row = to_position
-            if (from_row == to_row and abs(from_col - to_col) == 3 and 
-                self._is_river_jump_clear(from_position, to_position, True)):
+            if (
+                from_row == to_row
+                and abs(from_col - to_col) == 3
+                and self._is_river_jump_clear(from_position, to_position, True)
+            ):
                 return True
-            if (from_col == to_col and abs(from_row - to_row) == 4 and 
-                self._is_river_jump_clear(from_position, to_position, False)):
+            if (
+                from_col == to_col
+                and abs(from_row - to_row) == 4
+                and self._is_river_jump_clear(from_position, to_position, False)
+            ):
                 return True
 
         # Check piece ownership
@@ -105,19 +121,30 @@ class Controller:
             return False
 
         # Prevent moving into own den
-        own_den = self.game.board.PLAYER_1_DEN_POSITION if self.game.current_turn == 0 else self.game.board.PLAYER_2_DEN_POSITION
+        own_den = (
+            self.game.board.PLAYER_1_DEN_POSITION
+            if self.game.current_turn == 0
+            else self.game.board.PLAYER_2_DEN_POSITION
+        )
         if to_position == own_den:
             return False
 
         # Only rats can enter water
-        if piece.name != "Rat" and self.game.board.get_tile(to_position).tile_type == Tile.WATER:
+        if (
+            piece.name != "Rat"
+            and self.game.board.get_tile(to_position).tile_type == Tile.WATER
+        ):
             return False
 
         # Must move exactly one tile (orthogonal)
-        return abs(from_position[0] - to_position[0]) + abs(from_position[1] - to_position[1]) == 1
+        return (
+            abs(from_position[0] - to_position[0])
+            + abs(from_position[1] - to_position[1])
+            == 1
+        )
 
     def convert_to_coordinates(self, position):
-        column = ord(position[0].upper()) - ord('A')
+        column = ord(position[0].upper()) - ord("A")
         row = int(position[1]) - 1
         return (column, row) if 0 <= column < 7 and 0 <= row < 9 else None
 
@@ -177,25 +204,37 @@ class Controller:
 
     def check_win_condition(self, to_position: tuple[int, int]) -> bool:
         current_player = self.game.current_turn
-        opponent_den = self.game.board.PLAYER_2_DEN_POSITION if current_player == 0 else self.game.board.PLAYER_1_DEN_POSITION
-        
+        opponent_den = (
+            self.game.board.PLAYER_2_DEN_POSITION
+            if current_player == 0
+            else self.game.board.PLAYER_1_DEN_POSITION
+        )
+
         # Win Condition 1: Player entered opponent's den
         if to_position == opponent_den:
             self.view.display_board(self.game.board)
-            print(f"\n🎉 {self.game.players[current_player].name} wins by entering the opponent's den! 🎉")
+            print(
+                f"\n🎉 {self.game.players[current_player].name} wins by entering the opponent's den! 🎉"
+            )
             return True
 
         # Win Condition 2: Opponent has no pieces left
         if self.count_player_pieces(1 - current_player) == 0:
             self.view.display_board(self.game.board)
-            print(f"\n🎉 {self.game.players[current_player].name} wins by capturing all opponent pieces! 🎉")
+            print(
+                f"\n🎉 {self.game.players[current_player].name} wins by capturing all opponent pieces! 🎉"
+            )
             return True
 
         return False
 
     def count_player_pieces(self, player: int) -> int:
-        return sum(1 for column in self.game.board.grid for tile in column 
-                  if tile.get_piece() and tile.get_piece().owner == player)
+        return sum(
+            1
+            for column in self.game.board.grid
+            for tile in column
+            if tile.get_piece() and tile.get_piece().owner == player
+        )
 
     def end_turn(self):
         # Switch to the next player
