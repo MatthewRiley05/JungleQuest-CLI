@@ -39,14 +39,14 @@ class View:
         """Format a tile for display with piece and tile type info"""
         # Piece name abbreviations (to distinguish Lion from Leopard)
         piece_abbrev = {
-            "Rat": "R",
-            "Cat": "C",
-            "Dog": "D",
-            "Wolf": "W",
-            "Leopard": "P",  # P for Leopard
-            "Tiger": "T",
-            "Lion": "L",
-            "Elephant": "E",
+            "Rat": "rat",
+            "Cat": "cat",
+            "Dog": "dog",
+            "Wolf": "wlf",
+            "Leopard": "lpd",  # P for Leopard
+            "Tiger": "tgr",
+            "Lion": "lio",
+            "Elephant": "elp",
         }
 
         # Tile type symbols
@@ -72,7 +72,7 @@ class View:
     def display_turn(self, player_name):
         print(f"\n>>> Current turn: {player_name}")
         print(
-            "Pieces: R=Rat, C=Cat, D=Dog, W=Wolf, P=Leopard, T=Tiger, L=Lion, E=Elephant"
+            "Pieces: R=rat, C=cat, D=dog, W=wlf, P=lpd, T=tgr, L=lio, E=elp"
         )
         print("Tiles: D1/D2=Dens, TR=Trap, ~~=Water | Number indicates player (1 or 2)")
 
