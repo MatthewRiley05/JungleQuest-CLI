@@ -137,7 +137,7 @@ class Controller:
 
         if not self.is_valid_move(from_position, to_position):
             print(
-                "Invalid move. You may only move your own piece by one tile horizontally/vertically, and never into your its own den or water (except rats)"
+                "Invalid move. You may only move your own piece by one tile horizontally/vertically, and never into its own den or water (except rats)"
             )
             return
 
