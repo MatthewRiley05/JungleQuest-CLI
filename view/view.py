@@ -2,72 +2,71 @@ from model.board import Board
 
 
 class View:
+    # Display constants
+    BOARD_WIDTH = 60
+    HEADER_PADDING = 20
+    COLUMN_WIDTH = 6
+    COLUMNS = ["A", "B", "C", "D", "E", "F", "G"]
+
+    # Piece abbreviations
+    PIECE_ABBREV = {
+        "Rat": "R",
+        "Cat": "C",
+        "Dog": "D",
+        "Wolf": "W",
+        "Leopard": "P",
+        "Tiger": "T",
+        "Lion": "L",
+        "Elephant": "E",
+    }
+
+    # Tile symbols
+    TILE_SYMBOLS = {
+        "L": "  ",  # Land
+        "D1": "D1",  # Player 1 Den
+        "D2": "D2",  # Player 2 Den
+        "T": "TR",  # Trap
+        "W": "~~",  # Water
+    }
+
     def display_board(self, board: Board):
-        print("\n" + "=" * 60)
-        print(" " * 20 + "JUNGLE QUEST")
-        print("=" * 60)
+        """Display the game board with pieces and special tiles"""
+        print("\n" + "=" * self.BOARD_WIDTH)
+        print(" " * self.HEADER_PADDING + "JUNGLE QUEST")
+        print("=" * self.BOARD_WIDTH)
 
         # Column headers
-        print("    ", end="")
-        for col in ["A", "B", "C", "D", "E", "F", "G"]:
-            print(f" {col:^6}", end="")
-        print()
-        print("   +" + "------+" * 7)
+        self._print_column_headers()
+        print("   +" + "------+" * len(self.COLUMNS))
 
-        # Display board from row 1 to row 9 (top to bottom)
+        # Display board rows
         for i in range(board.MAX_ROWS):
-            # Row number
             print(f" {i + 1} |", end="")
-
-            # Display tiles in the row
             for j in range(board.MAX_COLUMNS):
-                tile = board.grid[j][i]
-                tile_str = self._format_tile(tile)
-                print(f"{tile_str}|", end="")
-
-            # Row number on the right side
+                print(f"{self._format_tile(board.grid[j][i])}|", end="")
             print(f" {i + 1}")
-            print("   +" + "------+" * 7)
+            print("   +" + "------+" * len(self.COLUMNS))
 
         # Column headers at bottom
+        self._print_column_headers()
+        print("=" * self.BOARD_WIDTH)
+
+    def _print_column_headers(self):
+        """Print column headers (A-G)"""
         print("    ", end="")
-        for col in ["A", "B", "C", "D", "E", "F", "G"]:
-            print(f" {col:^6}", end="")
-        print("\n" + "=" * 60)
+        for col in self.COLUMNS:
+            print(f" {col:^{self.COLUMN_WIDTH}}", end="")
+        print()
 
     def _format_tile(self, tile):
         """Format a tile for display with piece and tile type info"""
-        # Piece name abbreviations (to distinguish Lion from Leopard)
-        piece_abbrev = {
-            "Rat": "R",
-            "Cat": "C",
-            "Dog": "D",
-            "Wolf": "W",
-            "Leopard": "P",  # P for Leopard
-            "Tiger": "T",
-            "Lion": "L",
-            "Elephant": "E",
-        }
-
-        # Tile type symbols
-        tile_symbols = {
-            "L": "  ",  # Land (blank)
-            "D1": "D1",  # Player 1 Den
-            "D2": "D2",  # Player 2 Den
-            "T": "TR",  # Trap
-            "W": "~~",  # Water
-        }
-
         if not tile.is_empty():
             piece = tile.piece
-            # Use abbreviation + player number
-            piece_abbr = piece_abbrev.get(piece.name, piece.name[0])
-            piece_str = f"{piece_abbr}{piece.owner + 1}"
-            # Show piece on any tile type
-            return f"{piece_str:^6}"
-        else:
-            tile_display = tile_symbols.get(tile.tile_type, tile.tile_type)
-            return f"{tile_display:^6}"
+            piece_abbr = self.PIECE_ABBREV.get(piece.name, piece.name[0])
+            return f"{piece_abbr}{piece.owner + 1:^{self.COLUMN_WIDTH - 1}}"
+
+        tile_display = self.TILE_SYMBOLS.get(tile.tile_type, tile.tile_type)
+        return f"{tile_display:^{self.COLUMN_WIDTH}}"
 
     def display_turn(self, player_name):
         print(f"\n>>> Current turn: {player_name}")

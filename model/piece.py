@@ -1,43 +1,52 @@
 from .tile import Tile
+
+
 class Piece:
-    # pieces can capture other pieces of the same or lower ranks
-    # the rat may capture the elephant.
-    # the elephant may not capture the rat.
+    """Represents a game piece with rank and capture logic"""
+
+    # Piece ranks (higher can capture lower, except special cases)
     RANKS = {
-        'Rat': 1,
-        'Cat': 2,
-        'Dog': 3,
-        'Wolf': 4,
-        'Leopard': 5,
-        'Tiger': 6,
-        'Lion': 7,
-        'Elephant': 8
+        "Rat": 1,
+        "Cat": 2,
+        "Dog": 3,
+        "Wolf": 4,
+        "Leopard": 5,
+        "Tiger": 6,
+        "Lion": 7,
+        "Elephant": 8,
     }
 
-    # possible owners
+    # Player identifiers
     PLAYER_1 = 0
     PLAYER_2 = 1
 
-
-    def __init__(self, name : str, owner : str):
+    def __init__(self, name: str, owner: int):
         self.name = name
         self.rank = self.RANKS[name]
         self.owner = owner
 
     def __str__(self):
-        return f"{self.name[0]}"
+        return self.name[0]
 
-    def can_capture(self, self_tile : Tile, opponent, opponent_tile : Tile) -> bool:
-        if self.name == 'Rat':
-            if opponent.name == 'Elephant' and self_tile.tile_type != Tile.WATER:
-                return True
-            if opponent.name == 'Rat' and ((self_tile.tile_type == Tile.LAND and opponent_tile.tile_type == Tile.LAND) or (self_tile.tile_type == Tile.WATER and opponent_tile.tile_type == Tile.WATER)):
-                return True
+    def can_capture(self, self_tile: Tile, opponent, opponent_tile: Tile) -> bool:
+        """
+        Determine if this piece can capture an opponent piece.
+        Special rules:
+        - Rat can capture Elephant (only on land)
+        - Rat can capture Rat (only if both on same terrain type)
+        - Elephant cannot capture Rat
+        - Otherwise, higher/equal rank can capture lower rank
+        """
+        # Rat special cases
+        if self.name == "Rat":
+            if opponent.name == "Elephant":
+                return self_tile.tile_type != Tile.WATER
+            if opponent.name == "Rat":
+                return self_tile.tile_type == opponent_tile.tile_type
 
-        if self.name == 'Elephant' and opponent.name == 'Rat':
+        # Elephant cannot capture Rat
+        if self.name == "Elephant" and opponent.name == "Rat":
             return False
-        
-        if self.rank >= opponent.rank:
-            return True
-         
-        return False
+
+        # Standard rank-based capture
+        return self.rank >= opponent.rank
