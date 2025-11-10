@@ -76,14 +76,40 @@ class Controller:
     def is_valid_move(
         self, from_position: tuple[int, int], to_position: tuple[int, int]
     ) -> bool:
-        row_difference = abs(from_position[0] - to_position[0])
-        col_difference = abs(from_position[1] - to_position[1])
-
-        # Check if the movement is only one tile upwards, downwards, left or right.
-        if row_difference + col_difference != 1:
-            return False
-
+        from_col, from_row = from_position
+        to_col, to_row = to_position
         piece: Piece = self.game.board.get_piece(from_position)
+
+        # lion and tiger jumping across the river
+        if piece.name in ["Lion", "Tiger"]:
+            if from_row == to_row and abs(from_col - to_col) == 3:
+                river_col_1, river_col_2 = (1, 2) if from_col == 0 else (4, 5)
+                path_clear = True
+                for col in [river_col_1, river_col_2]:
+                    if (
+                        self.game.board.get_tile((col, from_row)).tile_type
+                        != Tile.WATER
+                        or not self.game.board.get_tile((col, from_row)).is_empty()
+                    ):
+                        path_clear = False
+                        break
+                if path_clear:
+                    return True
+            if from_col == to_col and abs(from_row - to_row) == 4:
+                path_clear = True
+                for row in range(min(from_row, to_row) + 1, max(from_row, to_row)):
+                    if (
+                        self.game.board.get_tile((from_col, row)).tile_type
+                        != Tile.WATER
+                        or not self.game.board.get_tile(
+                            (from_col, row)
+                        ).is_empty()  # rat can prevent
+                    ):
+                        path_clear = False
+                        break
+                if path_clear:
+                    return True
+
         # Check if the piece is owned by the current player.
         # note: current_turn = 0 if player 1's turn, 1 if player 2's turn.
         if self.game.current_turn != piece.owner:
@@ -106,6 +132,13 @@ class Controller:
             piece.name != "Rat"
             and self.game.board.get_tile(to_position).tile_type == Tile.WATER
         ):
+            return False
+
+        row_difference = abs(from_position[0] - to_position[0])
+        col_difference = abs(from_position[1] - to_position[1])
+
+        # Check if the movement is only one tile upwards, downwards, left or right.
+        if row_difference + col_difference != 1:
             return False
 
         return True
