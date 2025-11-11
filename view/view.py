@@ -52,7 +52,9 @@ class View:
         print("Tiles: D1/D2=Dens, TR=Trap, ~~=Water | Number indicates player (1 or 2)")
 
     def get_user_input(self):
-        return input("\nEnter your move (e.g., 'A1 to B2') or 'quit' to exit: ")
+        return input(
+            "\nEnter your move (e.g., 'A1 to B2'), 'undo' to undo last move, or 'quit' to exit: "
+        )
 
     def display_message(self, message):
         print(message)
