@@ -32,18 +32,24 @@ class Piece:
         # Trap rule: If your opponent is in your trap, you can capture it
         if opponent_tile.tile_type == Tile.TRAP and opponent_tile.owner == self.owner:
             return True
- 
+
         if self.name == "Rat":
             # Rat in water cannot capture pieces on land (and vice versa)
-            if self_tile.tile_type == Tile.WATER and opponent_tile.tile_type != Tile.WATER:
+            if (
+                self_tile.tile_type == Tile.WATER
+                and opponent_tile.tile_type != Tile.WATER
+            ):
                 return False
-            if self_tile.tile_type != Tile.WATER and opponent_tile.tile_type == Tile.WATER:
+            if (
+                self_tile.tile_type != Tile.WATER
+                and opponent_tile.tile_type == Tile.WATER
+            ):
                 return False
-            
+
             # Rat can capture Elephant only on land
             if opponent.name == "Elephant" and self_tile.tile_type != Tile.WATER:
                 return True
-            
+
             # Rat vs Rat: can only capture if in same environment (both water or both land)
             if opponent.name == "Rat" and (
                 (
