@@ -5,9 +5,62 @@ from model.piece import Piece
 from view.view import View
 
 import re
+import random
 
 
 class Controller:
+    # List of random names for player name generation
+    RANDOM_NAMES = [
+        "Alpha",
+        "Bravo",
+        "Charlie",
+        "Delta",
+        "Echo",
+        "Foxtrot",
+        "Golf",
+        "Hotel",
+        "India",
+        "Juliet",
+        "Kilo",
+        "Lima",
+        "Mike",
+        "November",
+        "Oscar",
+        "Papa",
+        "Quebec",
+        "Romeo",
+        "Sierra",
+        "Tango",
+        "Uniform",
+        "Victor",
+        "Whiskey",
+        "X-ray",
+        "Yankee",
+        "Zulu",
+        "Ace",
+        "Blaze",
+        "Cipher",
+        "Drake",
+        "Ember",
+        "Frost",
+        "Ghost",
+        "Hunter",
+        "Iron",
+        "Jade",
+        "Knight",
+        "Luna",
+        "Maverick",
+        "Nova",
+        "Phoenix",
+        "Raven",
+        "Shadow",
+        "Storm",
+        "Tiger",
+        "Viper",
+        "Wolf",
+        "Zen",
+    ]
+
     def __init__(self):
         self.view = View()
         self.game = None
@@ -29,12 +82,23 @@ class Controller:
         self.play_game()
 
     def _get_valid_player_name(self, player_label: str) -> str:
-        """Prompt for a valid player name (non-empty, not just whitespace)."""
+        """Prompt for a valid player name (non-empty, not just whitespace).
+
+        Players can either:
+        - Enter a custom name
+        - Press Enter to get a randomly generated name
+        """
         while True:
-            name = input(f"Enter name for {player_label}: ").strip()
+            name = input(
+                f"Enter name for {player_label} (or press Enter for random name): "
+            ).strip()
             if name:
                 return name
-            print("Error: Name cannot be empty. Please enter a valid name.")
+            else:
+                # Generate random name if user pressed Enter
+                random_name = random.choice(self.RANDOM_NAMES)
+                print(f"Random name generated: {random_name}")
+                return random_name
 
     def play_game(self):
         game_over = False
