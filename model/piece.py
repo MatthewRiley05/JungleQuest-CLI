@@ -46,8 +46,12 @@ class Piece:
             ):
                 return False
 
-            # Rat can capture Elephant only on land
-            if opponent.name == "Elephant" and self_tile.tile_type != Tile.WATER:
+            # Rat can capture Elephant only if both are on land
+            if (
+                opponent.name == "Elephant"
+                and self_tile.tile_type != Tile.WATER
+                and opponent_tile.tile_type != Tile.WATER
+            ):
                 return True
 
             # Rat vs Rat: can only capture if in same environment (both water or both land)
