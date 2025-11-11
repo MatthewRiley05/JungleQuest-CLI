@@ -23,10 +23,18 @@ class Controller:
  ╚════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚══════╝     ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
             """
         )
-        player1_name = input("Enter name for Player 1: ")
-        player2_name = input("Enter name for Player 2: ")
+        player1_name = self._get_valid_player_name("Player 1")
+        player2_name = self._get_valid_player_name("Player 2")
         self.game = Game(player1_name, player2_name)
         self.play_game()
+
+    def _get_valid_player_name(self, player_label: str) -> str:
+        """Prompt for a valid player name (non-empty, not just whitespace)."""
+        while True:
+            name = input(f"Enter name for {player_label}: ").strip()
+            if name:
+                return name
+            print("Error: Name cannot be empty. Please enter a valid name.")
 
     def play_game(self):
         game_over = False
