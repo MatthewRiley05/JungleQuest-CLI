@@ -108,7 +108,7 @@ class Controller:
         while not game_over:
             self.view.display_board(self.game.board)
             self.view.display_turn(self.game.players[self.game.current_turn].name)
-            
+
             # Display undo info
             undos_remaining = self.MAX_UNDOS - self.undo_count
             print(f"Undos remaining: {undos_remaining}/{self.MAX_UNDOS}")
@@ -117,7 +117,7 @@ class Controller:
             if move.lower() == "quit":
                 print("Terminating game session...")
                 break
-            
+
             # Handle undo command
             if move.lower() == "undo":
                 if self.undo_move():
@@ -327,16 +327,10 @@ class Controller:
                 piece = tile.get_piece()
                 if piece:
                     # Store piece info: (name, owner, position)
-                    board_state[(col, row)] = {
-                        'name': piece.name,
-                        'owner': piece.owner
-                    }
-        
+                    board_state[(col, row)] = {"name": piece.name, "owner": piece.owner}
+
         # Save state with current player turn
-        state = {
-            'board': board_state,
-            'current_turn': self.game.current_turn
-        }
+        state = {"board": board_state, "current_turn": self.game.current_turn}
         self.move_history.append(state)
 
     def undo_move(self):
@@ -345,32 +339,32 @@ class Controller:
         if self.undo_count >= self.MAX_UNDOS:
             print(f"Cannot undo: Maximum of {self.MAX_UNDOS} undos per game reached.")
             return False
-        
+
         # Check if there's any move to undo
         if len(self.move_history) == 0:
             print("Cannot undo: No moves have been made yet.")
             return False
-        
+
         # Restore the previous state
         previous_state = self.move_history.pop()
-        
+
         # Clear the current board
         for row in range(9):
             for col in range(7):
                 self.game.board.remove_piece((col, row))
-        
+
         # Restore pieces to their previous positions
-        for position, piece_info in previous_state['board'].items():
+        for position, piece_info in previous_state["board"].items():
             # Recreate the piece
-            piece = Piece(piece_info['name'], piece_info['owner'])
+            piece = Piece(piece_info["name"], piece_info["owner"])
             self.game.board.place_piece(piece, position)
-        
+
         # Restore the turn
-        self.game.current_turn = previous_state['current_turn']
-        
+        self.game.current_turn = previous_state["current_turn"]
+
         # Increment undo counter
         self.undo_count += 1
-        
+
         print(f"✓ Move undone! ({self.MAX_UNDOS - self.undo_count} undos remaining)")
         return True
 
