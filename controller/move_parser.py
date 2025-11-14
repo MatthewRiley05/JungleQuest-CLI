@@ -19,7 +19,7 @@ class MoveParser:
         Parse move input string into board coordinates.
 
         Args:
-            input_str: User input like "A1 to B2"
+            input: User input like "A1 to B2"
 
         Returns:
             Tuple of (from_position, to_position) or (None, None) if invalid
@@ -34,15 +34,14 @@ class MoveParser:
 
         from_part, to_part = input.split(" to ")
 
-        if not MoveParser.convert_to_coordinates(
-            from_part
-        ) or not MoveParser.convert_to_coordinates(to_part):
+        from_position = MoveParser.convert_to_coordinates(from_part)
+        to_position = MoveParser.convert_to_coordinates(to_part)
+
+        if not from_position or not to_position:
             print(
                 "Input is out of bounds. Please enter a valid move (e.g: A1 to A2, B4 to C4)"
             )
             return None, None
-        from_position = MoveParser.convert_to_coordinates(from_part)
-        to_position = MoveParser.convert_to_coordinates(to_part)
 
         return from_position, to_position
 
