@@ -1,14 +1,36 @@
+"""
+Game Controller Module
+
+This module contains the Controller class which manages game flow,
+user input, move validation, and game state management.
+"""
+
+import re
+import random
+
 from model.game import Game
 from model.board import Board
 from model.tile import Tile
 from model.piece import Piece
 from view.view import View
 
-import re
-import random
-
 
 class Controller:
+    """
+    Main game controller managing game flow and user interactions.
+
+    Handles user input, move validation, game state management,
+    undo functionality, and win condition checking.
+
+    Attributes:
+        RANDOM_NAMES: List of names for random player name generation
+        MAX_UNDOS: Maximum number of undos allowed per game
+        view: View instance for display operations
+        game: Current game instance
+        move_history: Stack of previous game states for undo
+        undo_count: Number of undos used in current game
+    """
+
     # List of random names for player name generation
     RANDOM_NAMES = [
         "Alpha",
@@ -61,14 +83,21 @@ class Controller:
         "Zen",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the controller with view and empty game state."""
         self.view = View()
         self.game = None
         self.move_history = []  # Stack to store move history for undo
         self.undo_count = 0  # Track number of undos used (max 3 per game)
         self.MAX_UNDOS = 3
 
-    def start_game(self):
+    def start_game(self) -> None:
+        """
+        Start a new game session.
+
+        Displays welcome banner, prompts for player names,
+        initializes the game, and starts the main game loop.
+        """
         print(
             r"""
      ██╗██╗   ██╗███╗   ██╗ ██████╗ ██╗     ███████╗     ██████╗  █████╗ ███╗   ███╗███████╗
@@ -103,7 +132,13 @@ class Controller:
                 print(f"Random name generated: {random_name}")
                 return random_name
 
-    def play_game(self):
+    def play_game(self) -> None:
+        """
+        Main game loop.
+
+        Continuously displays the board, gets user input, processes moves,
+        and checks for win conditions until the game ends.
+        """
         game_over = False
         while not game_over:
             self.view.display_board(self.game.board)

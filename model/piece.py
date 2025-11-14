@@ -1,11 +1,34 @@
+"""
+Piece Module
+
+This module contains the Piece class representing game pieces
+and their capture rules.
+"""
+
+from typing import Dict
 from .tile import Tile
 
 
 class Piece:
+    """
+    Represents a game piece with rank and capture rules.
+
+    Each piece has a name, rank, and owner. Pieces can capture
+    other pieces based on rank and special rules.
+
+    Attributes:
+        RANKS: Dictionary mapping piece names to their ranks
+        PLAYER_1: Constant for player 1 (0)
+        PLAYER_2: Constant for player 2 (1)
+        name: Name of the piece (e.g., "Rat", "Elephant")
+        rank: Numeric rank of the piece (1-8)
+        owner: Player who owns this piece (0 or 1)
+    """
+
     # pieces can capture other pieces of the same or lower ranks
     # the rat may capture the elephant.
     # the elephant may not capture the rat.
-    RANKS = {
+    RANKS: Dict[str, int] = {
         "Rat": 1,
         "Cat": 2,
         "Dog": 3,
@@ -20,7 +43,14 @@ class Piece:
     PLAYER_1 = 0
     PLAYER_2 = 1
 
-    def __init__(self, name: str, owner: str):
+    def __init__(self, name: str, owner) -> None:
+        """
+        Initialize a piece.
+
+        Args:
+            name: Name of the piece (must be in RANKS)
+            owner: Player who owns this piece (0 or 1)
+        """
         self.name = name
         self.rank = self.RANKS[name]
         self.owner = owner
