@@ -14,6 +14,7 @@ from model.tile import Tile
 from model.piece import Piece
 from view.view import View
 
+from .move_parser import MoveParser
 
 class Controller:
     """
@@ -90,6 +91,8 @@ class Controller:
         self.move_history = []  # Stack to store move history for undo
         self.undo_count = 0  # Track number of undos used (max 3 per game)
         self.MAX_UNDOS = 3
+
+        self.move_parser = MoveParser()
 
     def start_game(self) -> None:
         """
@@ -171,29 +174,6 @@ class Controller:
                 # Valid move but game continues
                 self.game.switch_turn()
 
-    def parse_move_input(self, input: str):
-        pattern = r"^[A-Ga-g][1-9] to [A-Ga-g][1-9]$"  # valid characters include A-G, a-g, 1-9
-
-        if not re.match(pattern, input):
-            print(
-                "Invalid input format. Please enter a valid move (e.g: A1 to A2, B4 to C4)"
-            )
-            return None, None  # means input is invalid.
-
-        from_part, to_part = input.split(" to ")
-
-        if not self.convert_to_coordinates(
-            from_part
-        ) or not self.convert_to_coordinates(to_part):
-            print(
-                "Input is out of bounds. Please enter a valid move (e.g: A1 to A2, B4 to C4)"
-            )
-            return None, None
-        from_position = self.convert_to_coordinates(from_part)
-        to_position = self.convert_to_coordinates(to_part)
-
-        return from_position, to_position
-
     def _is_river_jump_clear(self, from_pos, to_pos, is_horizontal):
         """Check if river jump path is clear of rats."""
         if is_horizontal:
@@ -264,14 +244,9 @@ class Controller:
             == 1
         )
 
-    def convert_to_coordinates(self, position):
-        column = ord(position[0].upper()) - ord("A")
-        row = int(position[1]) - 1
-        return (column, row) if 0 <= column < 7 and 0 <= row < 9 else None
-
     def take_turn(self, move):
         # Validate the move string format
-        from_position, to_position = self.parse_move_input(move)
+        from_position, to_position = self.move_parser.parse_move_input(move)
 
         if not from_position or not to_position:
             return None  # for invalid inputs

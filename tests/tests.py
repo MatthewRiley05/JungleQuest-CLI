@@ -11,6 +11,7 @@ from model.tile import Tile
 from model.player import Player
 from model.game import Game
 from controller.controller import Controller
+from controller.move_parser import MoveParser
 
 
 class TestTile(unittest.TestCase):
@@ -301,41 +302,42 @@ class TestController(unittest.TestCase):
         """Set up test controller"""
         self.controller = Controller()
         self.controller.game = Game("TestPlayer1", "TestPlayer2")
+        self.move_parser = MoveParser()
 
     def test_convert_to_coordinates(self):
         """Test coordinate conversion from algebraic notation"""
         # Test valid coordinates
-        self.assertEqual(self.controller.convert_to_coordinates("A1"), (0, 0))
-        self.assertEqual(self.controller.convert_to_coordinates("G9"), (6, 8))
-        self.assertEqual(self.controller.convert_to_coordinates("D5"), (3, 4))
+        self.assertEqual(self.move_parser.convert_to_coordinates("A1"), (0, 0))
+        self.assertEqual(self.move_parser.convert_to_coordinates("G9"), (6, 8))
+        self.assertEqual(self.move_parser.convert_to_coordinates("D5"), (3, 4))
 
         # Test lowercase
-        self.assertEqual(self.controller.convert_to_coordinates("a1"), (0, 0))
-        self.assertEqual(self.controller.convert_to_coordinates("g9"), (6, 8))
+        self.assertEqual(self.move_parser.convert_to_coordinates("a1"), (0, 0))
+        self.assertEqual(self.move_parser.convert_to_coordinates("g9"), (6, 8))
 
         # Test invalid coordinates
-        self.assertIsNone(self.controller.convert_to_coordinates("H1"))
-        self.assertIsNone(self.controller.convert_to_coordinates("A0"))
+        self.assertIsNone(self.move_parser.convert_to_coordinates("H1"))
+        self.assertIsNone(self.move_parser.convert_to_coordinates("A0"))
         # Note: A10 would parse as (0, 0) because it only reads first digit
         # This is a known limitation of the current implementation
 
     def test_parse_move_input(self):
         """Test parsing move input strings"""
         # Valid inputs
-        from_pos, to_pos = self.controller.parse_move_input("A1 to A2")
+        from_pos, to_pos = self.move_parser.parse_move_input("A1 to A2")
         self.assertEqual(from_pos, (0, 0))
         self.assertEqual(to_pos, (0, 1))
 
-        from_pos, to_pos = self.controller.parse_move_input("G9 to F9")
+        from_pos, to_pos = self.move_parser.parse_move_input("G9 to F9")
         self.assertEqual(from_pos, (6, 8))
         self.assertEqual(to_pos, (5, 8))
 
         # Invalid inputs
-        from_pos, to_pos = self.controller.parse_move_input("invalid")
+        from_pos, to_pos = self.move_parser.parse_move_input("invalid")
         self.assertIsNone(from_pos)
         self.assertIsNone(to_pos)
 
-        from_pos, to_pos = self.controller.parse_move_input("A1 A2")
+        from_pos, to_pos = self.move_parser.parse_move_input("A1 A2")
         self.assertIsNone(from_pos)
         self.assertIsNone(to_pos)
 
