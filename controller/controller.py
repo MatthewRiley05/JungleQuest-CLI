@@ -7,6 +7,7 @@ user input, move validation, and game state management.
 
 import re
 import random
+from typing import Optional
 
 from model.game import Game
 from model.board import Board
@@ -15,6 +16,8 @@ from model.piece import Piece
 from view.view import View
 
 from .move_parser import MoveParser
+from .move_validator import MoveValidator
+
 
 class Controller:
     """
@@ -93,6 +96,7 @@ class Controller:
         self.MAX_UNDOS = 3
 
         self.move_parser = MoveParser()
+        self.move_validator: Optional[MoveValidator] = None
 
     def start_game(self) -> None:
         """
@@ -114,6 +118,7 @@ class Controller:
         player1_name = self._get_valid_player_name("Player 1")
         player2_name = self._get_valid_player_name("Player 2")
         self.game = Game(player1_name, player2_name)
+        self.move_validator = MoveValidator(self.game.board)
         self.play_game()
 
     def _get_valid_player_name(self, player_label: str) -> str:
@@ -174,76 +179,6 @@ class Controller:
                 # Valid move but game continues
                 self.game.switch_turn()
 
-    def _is_river_jump_clear(self, from_pos, to_pos, is_horizontal):
-        """Check if river jump path is clear of rats."""
-        if is_horizontal:
-            col_range = range(
-                min(from_pos[0], to_pos[0]) + 1, max(from_pos[0], to_pos[0])
-            )
-            return all(
-                self.game.board.get_tile((col, from_pos[1])).tile_type == Tile.WATER
-                and self.game.board.get_tile((col, from_pos[1])).is_empty()
-                for col in col_range
-            )
-        else:
-            row_range = range(
-                min(from_pos[1], to_pos[1]) + 1, max(from_pos[1], to_pos[1])
-            )
-            return all(
-                self.game.board.get_tile((from_pos[0], row)).tile_type == Tile.WATER
-                and self.game.board.get_tile((from_pos[0], row)).is_empty()
-                for row in row_range
-            )
-
-    def is_valid_move(
-        self, from_position: tuple[int, int], to_position: tuple[int, int]
-    ) -> bool:
-        piece: Piece = self.game.board.get_piece(from_position)
-
-        # Lion/Tiger river jumping (3 cols horizontal or 4 rows vertical)
-        if piece.name in ["Lion", "Tiger"]:
-            from_col, from_row = from_position
-            to_col, to_row = to_position
-            if (
-                from_row == to_row
-                and abs(from_col - to_col) == 3
-                and self._is_river_jump_clear(from_position, to_position, True)
-            ):
-                return True
-            if (
-                from_col == to_col
-                and abs(from_row - to_row) == 4
-                and self._is_river_jump_clear(from_position, to_position, False)
-            ):
-                return True
-
-        # Check piece ownership
-        if self.game.current_turn != piece.owner:
-            return False
-
-        # Prevent moving into own den
-        own_den = (
-            self.game.board.PLAYER_1_DEN_POSITION
-            if self.game.current_turn == 0
-            else self.game.board.PLAYER_2_DEN_POSITION
-        )
-        if to_position == own_den:
-            return False
-
-        # Only rats can enter water
-        if (
-            piece.name != "Rat"
-            and self.game.board.get_tile(to_position).tile_type == Tile.WATER
-        ):
-            return False
-
-        # Must move exactly one tile (orthogonal)
-        return (
-            abs(from_position[0] - to_position[0])
-            + abs(from_position[1] - to_position[1])
-            == 1
-        )
-
     def take_turn(self, move):
         # Validate the move string format
         from_position, to_position = self.move_parser.parse_move_input(move)
@@ -258,7 +193,9 @@ class Controller:
             print("Invalid move. A tile with no piece was selected. Please try again.")
             return None
 
-        if not self.is_valid_move(from_position, to_position):
+        if not self.move_validator.is_valid_move(
+            from_position, to_position, current_player
+        ):
             print(
                 "Invalid move. You may only move your own piece by one tile horizontally/vertically, and never into its own den or water (except rats)"
             )
