@@ -17,6 +17,7 @@ from view.view import View
 
 from .move_parser import MoveParser
 from .move_validator import MoveValidator
+from .game_state import GameStateManager
 
 
 class Controller:
@@ -91,12 +92,10 @@ class Controller:
         """Initialize the controller with view and empty game state."""
         self.view = View()
         self.game = None
-        self.move_history = []  # Stack to store move history for undo
-        self.undo_count = 0  # Track number of undos used (max 3 per game)
-        self.MAX_UNDOS = 3
 
         self.move_parser = MoveParser()
         self.move_validator: Optional[MoveValidator] = None
+        self.state_manager = GameStateManager(max_undos=3)
 
     def start_game(self) -> None:
         """
@@ -153,8 +152,9 @@ class Controller:
             self.view.display_turn(self.game.players[self.game.current_turn].name)
 
             # Display undo info
-            undos_remaining = self.MAX_UNDOS - self.undo_count
-            print(f"Undos remaining: {undos_remaining}/{self.MAX_UNDOS}")
+            print(
+                f"Undos remaining: {self.state_manager.get_undos_remaining()}/{self.state_manager.MAX_UNDOS}"
+            )
 
             move = self.view.get_user_input()
             if move.lower() == "quit":
@@ -163,7 +163,7 @@ class Controller:
 
             # Handle undo command
             if move.lower() == "undo":
-                if self.undo_move():
+                if self.state_manager.undo_move(self.game.board, self.game):
                     continue  # Successfully undone, show board again
                 else:
                     continue  # Undo failed, show error and await new input
@@ -225,7 +225,7 @@ class Controller:
             self.game.board.remove_piece(to_position)
 
         # Save game state before making the move (for undo functionality)
-        self._save_game_state()
+        self.state_manager._save_game_state(self.game.board, self.game.current_turn)
 
         # Move piece
         self.game.board.remove_piece(from_position)
@@ -263,57 +263,6 @@ class Controller:
             return True
 
         return False
-
-    def _save_game_state(self):
-        """Save the current game state before a move for potential undo."""
-        # Create a deep copy of the board state
-        board_state = {}
-        for row in range(9):
-            for col in range(7):
-                tile = self.game.board.get_tile((col, row))
-                piece = tile.get_piece()
-                if piece:
-                    # Store piece info: (name, owner, position)
-                    board_state[(col, row)] = {"name": piece.name, "owner": piece.owner}
-
-        # Save state with current player turn
-        state = {"board": board_state, "current_turn": self.game.current_turn}
-        self.move_history.append(state)
-
-    def undo_move(self):
-        """Undo the last move if undos are available."""
-        # Check if undos are available
-        if self.undo_count >= self.MAX_UNDOS:
-            print(f"Cannot undo: Maximum of {self.MAX_UNDOS} undos per game reached.")
-            return False
-
-        # Check if there's any move to undo
-        if len(self.move_history) == 0:
-            print("Cannot undo: No moves have been made yet.")
-            return False
-
-        # Restore the previous state
-        previous_state = self.move_history.pop()
-
-        # Clear the current board
-        for row in range(9):
-            for col in range(7):
-                self.game.board.remove_piece((col, row))
-
-        # Restore pieces to their previous positions
-        for position, piece_info in previous_state["board"].items():
-            # Recreate the piece
-            piece = Piece(piece_info["name"], piece_info["owner"])
-            self.game.board.place_piece(piece, position)
-
-        # Restore the turn
-        self.game.current_turn = previous_state["current_turn"]
-
-        # Increment undo counter
-        self.undo_count += 1
-
-        print(f"✓ Move undone! ({self.MAX_UNDOS - self.undo_count} undos remaining)")
-        return True
 
     def count_player_pieces(self, player: int) -> int:
         return sum(
