@@ -1,14 +1,41 @@
+"""
+Game Controller Module
+
+This module contains the Controller class which manages game flow,
+user input, move validation, and game state management.
+"""
+
+import re
+import random
+from typing import Optional
+
 from model.game import Game
 from model.board import Board
 from model.tile import Tile
 from model.piece import Piece
 from view.view import View
 
-import re
-import random
+from .move_parser import MoveParser
+from .move_validator import MoveValidator
+from .game_state import GameStateManager
 
 
 class Controller:
+    """
+    Main game controller managing game flow and user interactions.
+
+    Handles user input, move validation, game state management,
+    undo functionality, and win condition checking.
+
+    Attributes:
+        RANDOM_NAMES: List of names for random player name generation
+        MAX_UNDOS: Maximum number of undos allowed per game
+        view: View instance for display operations
+        game: Current game instance
+        move_history: Stack of previous game states for undo
+        undo_count: Number of undos used in current game
+    """
+
     # List of random names for player name generation
     RANDOM_NAMES = [
         "Alpha",
@@ -61,14 +88,22 @@ class Controller:
         "Zen",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize the controller with view and empty game state."""
         self.view = View()
         self.game = None
-        self.move_history = []  # Stack to store move history for undo
-        self.undo_count = 0  # Track number of undos used (max 3 per game)
-        self.MAX_UNDOS = 3
 
-    def start_game(self):
+        self.move_parser = MoveParser()
+        self.move_validator: Optional[MoveValidator] = None
+        self.state_manager = GameStateManager(max_undos=3)
+
+    def start_game(self) -> None:
+        """
+        Start a new game session.
+
+        Displays welcome banner, prompts for player names,
+        initializes the game, and starts the main game loop.
+        """
         print(
             r"""
      ██╗██╗   ██╗███╗   ██╗ ██████╗ ██╗     ███████╗     ██████╗  █████╗ ███╗   ███╗███████╗
@@ -82,6 +117,7 @@ class Controller:
         player1_name = self._get_valid_player_name("Player 1")
         player2_name = self._get_valid_player_name("Player 2")
         self.game = Game(player1_name, player2_name)
+        self.move_validator = MoveValidator(self.game.board)
         self.play_game()
 
     def _get_valid_player_name(self, player_label: str) -> str:
@@ -103,15 +139,22 @@ class Controller:
                 print(f"Random name generated: {random_name}")
                 return random_name
 
-    def play_game(self):
+    def play_game(self) -> None:
+        """
+        Main game loop.
+
+        Continuously displays the board, gets user input, processes moves,
+        and checks for win conditions until the game ends.
+        """
         game_over = False
         while not game_over:
             self.view.display_board(self.game.board)
             self.view.display_turn(self.game.players[self.game.current_turn].name)
 
             # Display undo info
-            undos_remaining = self.MAX_UNDOS - self.undo_count
-            print(f"Undos remaining: {undos_remaining}/{self.MAX_UNDOS}")
+            print(
+                f"Undos remaining: {self.state_manager.get_undos_remaining()}/{self.state_manager.MAX_UNDOS}"
+            )
 
             move = self.view.get_user_input()
             if move.lower() == "quit":
@@ -120,7 +163,7 @@ class Controller:
 
             # Handle undo command
             if move.lower() == "undo":
-                if self.undo_move():
+                if self.state_manager.undo_move(self.game.board, self.game):
                     continue  # Successfully undone, show board again
                 else:
                     continue  # Undo failed, show error and await new input
@@ -136,107 +179,9 @@ class Controller:
                 # Valid move but game continues
                 self.game.switch_turn()
 
-    def parse_move_input(self, input: str):
-        pattern = r"^[A-Ga-g][1-9] to [A-Ga-g][1-9]$"  # valid characters include A-G, a-g, 1-9
-
-        if not re.match(pattern, input):
-            print(
-                "Invalid input format. Please enter a valid move (e.g: A1 to A2, B4 to C4)"
-            )
-            return None, None  # means input is invalid.
-
-        from_part, to_part = input.split(" to ")
-
-        if not self.convert_to_coordinates(
-            from_part
-        ) or not self.convert_to_coordinates(to_part):
-            print(
-                "Input is out of bounds. Please enter a valid move (e.g: A1 to A2, B4 to C4)"
-            )
-            return None, None
-        from_position = self.convert_to_coordinates(from_part)
-        to_position = self.convert_to_coordinates(to_part)
-
-        return from_position, to_position
-
-    def _is_river_jump_clear(self, from_pos, to_pos, is_horizontal):
-        """Check if river jump path is clear of rats."""
-        if is_horizontal:
-            col_range = range(
-                min(from_pos[0], to_pos[0]) + 1, max(from_pos[0], to_pos[0])
-            )
-            return all(
-                self.game.board.get_tile((col, from_pos[1])).tile_type == Tile.WATER
-                and self.game.board.get_tile((col, from_pos[1])).is_empty()
-                for col in col_range
-            )
-        else:
-            row_range = range(
-                min(from_pos[1], to_pos[1]) + 1, max(from_pos[1], to_pos[1])
-            )
-            return all(
-                self.game.board.get_tile((from_pos[0], row)).tile_type == Tile.WATER
-                and self.game.board.get_tile((from_pos[0], row)).is_empty()
-                for row in row_range
-            )
-
-    def is_valid_move(
-        self, from_position: tuple[int, int], to_position: tuple[int, int]
-    ) -> bool:
-        piece: Piece = self.game.board.get_piece(from_position)
-
-        # Lion/Tiger river jumping (3 cols horizontal or 4 rows vertical)
-        if piece.name in ["Lion", "Tiger"]:
-            from_col, from_row = from_position
-            to_col, to_row = to_position
-            if (
-                from_row == to_row
-                and abs(from_col - to_col) == 3
-                and self._is_river_jump_clear(from_position, to_position, True)
-            ):
-                return True
-            if (
-                from_col == to_col
-                and abs(from_row - to_row) == 4
-                and self._is_river_jump_clear(from_position, to_position, False)
-            ):
-                return True
-
-        # Check piece ownership
-        if self.game.current_turn != piece.owner:
-            return False
-
-        # Prevent moving into own den
-        own_den = (
-            self.game.board.PLAYER_1_DEN_POSITION
-            if self.game.current_turn == 0
-            else self.game.board.PLAYER_2_DEN_POSITION
-        )
-        if to_position == own_den:
-            return False
-
-        # Only rats can enter water
-        if (
-            piece.name != "Rat"
-            and self.game.board.get_tile(to_position).tile_type == Tile.WATER
-        ):
-            return False
-
-        # Must move exactly one tile (orthogonal)
-        return (
-            abs(from_position[0] - to_position[0])
-            + abs(from_position[1] - to_position[1])
-            == 1
-        )
-
-    def convert_to_coordinates(self, position):
-        column = ord(position[0].upper()) - ord("A")
-        row = int(position[1]) - 1
-        return (column, row) if 0 <= column < 7 and 0 <= row < 9 else None
-
     def take_turn(self, move):
         # Validate the move string format
-        from_position, to_position = self.parse_move_input(move)
+        from_position, to_position = self.move_parser.parse_move_input(move)
 
         if not from_position or not to_position:
             return None  # for invalid inputs
@@ -248,7 +193,9 @@ class Controller:
             print("Invalid move. A tile with no piece was selected. Please try again.")
             return None
 
-        if not self.is_valid_move(from_position, to_position):
+        if not self.move_validator.is_valid_move(
+            from_position, to_position, current_player
+        ):
             print(
                 "Invalid move. You may only move your own piece by one tile horizontally/vertically, and never into its own den or water (except rats)"
             )
@@ -278,7 +225,7 @@ class Controller:
             self.game.board.remove_piece(to_position)
 
         # Save game state before making the move (for undo functionality)
-        self._save_game_state()
+        self.state_manager._save_game_state(self.game.board, self.game.current_turn)
 
         # Move piece
         self.game.board.remove_piece(from_position)
@@ -316,57 +263,6 @@ class Controller:
             return True
 
         return False
-
-    def _save_game_state(self):
-        """Save the current game state before a move for potential undo."""
-        # Create a deep copy of the board state
-        board_state = {}
-        for row in range(9):
-            for col in range(7):
-                tile = self.game.board.get_tile((col, row))
-                piece = tile.get_piece()
-                if piece:
-                    # Store piece info: (name, owner, position)
-                    board_state[(col, row)] = {"name": piece.name, "owner": piece.owner}
-
-        # Save state with current player turn
-        state = {"board": board_state, "current_turn": self.game.current_turn}
-        self.move_history.append(state)
-
-    def undo_move(self):
-        """Undo the last move if undos are available."""
-        # Check if undos are available
-        if self.undo_count >= self.MAX_UNDOS:
-            print(f"Cannot undo: Maximum of {self.MAX_UNDOS} undos per game reached.")
-            return False
-
-        # Check if there's any move to undo
-        if len(self.move_history) == 0:
-            print("Cannot undo: No moves have been made yet.")
-            return False
-
-        # Restore the previous state
-        previous_state = self.move_history.pop()
-
-        # Clear the current board
-        for row in range(9):
-            for col in range(7):
-                self.game.board.remove_piece((col, row))
-
-        # Restore pieces to their previous positions
-        for position, piece_info in previous_state["board"].items():
-            # Recreate the piece
-            piece = Piece(piece_info["name"], piece_info["owner"])
-            self.game.board.place_piece(piece, position)
-
-        # Restore the turn
-        self.game.current_turn = previous_state["current_turn"]
-
-        # Increment undo counter
-        self.undo_count += 1
-
-        print(f"✓ Move undone! ({self.MAX_UNDOS - self.undo_count} undos remaining)")
-        return True
 
     def count_player_pieces(self, player: int) -> int:
         return sum(

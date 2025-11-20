@@ -11,6 +11,8 @@ from model.tile import Tile
 from model.player import Player
 from model.game import Game
 from controller.controller import Controller
+from controller.move_parser import MoveParser
+from controller.move_validator import MoveValidator
 
 
 class TestTile(unittest.TestCase):
@@ -301,41 +303,43 @@ class TestController(unittest.TestCase):
         """Set up test controller"""
         self.controller = Controller()
         self.controller.game = Game("TestPlayer1", "TestPlayer2")
+        self.move_parser = MoveParser()
+        self.move_validator = MoveValidator(self.controller.game.board)
 
     def test_convert_to_coordinates(self):
         """Test coordinate conversion from algebraic notation"""
         # Test valid coordinates
-        self.assertEqual(self.controller.convert_to_coordinates("A1"), (0, 0))
-        self.assertEqual(self.controller.convert_to_coordinates("G9"), (6, 8))
-        self.assertEqual(self.controller.convert_to_coordinates("D5"), (3, 4))
+        self.assertEqual(self.move_parser.convert_to_coordinates("A1"), (0, 0))
+        self.assertEqual(self.move_parser.convert_to_coordinates("G9"), (6, 8))
+        self.assertEqual(self.move_parser.convert_to_coordinates("D5"), (3, 4))
 
         # Test lowercase
-        self.assertEqual(self.controller.convert_to_coordinates("a1"), (0, 0))
-        self.assertEqual(self.controller.convert_to_coordinates("g9"), (6, 8))
+        self.assertEqual(self.move_parser.convert_to_coordinates("a1"), (0, 0))
+        self.assertEqual(self.move_parser.convert_to_coordinates("g9"), (6, 8))
 
         # Test invalid coordinates
-        self.assertIsNone(self.controller.convert_to_coordinates("H1"))
-        self.assertIsNone(self.controller.convert_to_coordinates("A0"))
+        self.assertIsNone(self.move_parser.convert_to_coordinates("H1"))
+        self.assertIsNone(self.move_parser.convert_to_coordinates("A0"))
         # Note: A10 would parse as (0, 0) because it only reads first digit
         # This is a known limitation of the current implementation
 
     def test_parse_move_input(self):
         """Test parsing move input strings"""
         # Valid inputs
-        from_pos, to_pos = self.controller.parse_move_input("A1 to A2")
+        from_pos, to_pos = self.move_parser.parse_move_input("A1 to A2")
         self.assertEqual(from_pos, (0, 0))
         self.assertEqual(to_pos, (0, 1))
 
-        from_pos, to_pos = self.controller.parse_move_input("G9 to F9")
+        from_pos, to_pos = self.move_parser.parse_move_input("G9 to F9")
         self.assertEqual(from_pos, (6, 8))
         self.assertEqual(to_pos, (5, 8))
 
         # Invalid inputs
-        from_pos, to_pos = self.controller.parse_move_input("invalid")
+        from_pos, to_pos = self.move_parser.parse_move_input("invalid")
         self.assertIsNone(from_pos)
         self.assertIsNone(to_pos)
 
-        from_pos, to_pos = self.controller.parse_move_input("A1 A2")
+        from_pos, to_pos = self.move_parser.parse_move_input("A1 A2")
         self.assertIsNone(from_pos)
         self.assertIsNone(to_pos)
 
@@ -354,15 +358,33 @@ class TestController(unittest.TestCase):
         self.controller.game.current_turn = 0
 
         # Valid moves (one tile in each direction, all land tiles)
-        self.assertTrue(self.controller.is_valid_move((0, 1), (0, 2)))  # Down
         self.assertTrue(
-            self.controller.is_valid_move((0, 1), (0, 0))
+            self.move_validator.is_valid_move(
+                (0, 1), (0, 2), self.controller.game.current_turn
+            )
+        )  # Down
+        self.assertTrue(
+            self.move_validator.is_valid_move(
+                (0, 1), (0, 0), self.controller.game.current_turn
+            )
         )  # Up (den, but allowed)
-        self.assertTrue(self.controller.is_valid_move((0, 1), (1, 1)))  # Right
+        self.assertTrue(
+            self.move_validator.is_valid_move(
+                (0, 1), (1, 1), self.controller.game.current_turn
+            )
+        )  # Right
 
         # Invalid moves (too far or diagonal)
-        self.assertFalse(self.controller.is_valid_move((0, 1), (0, 3)))  # Two tiles
-        self.assertFalse(self.controller.is_valid_move((0, 1), (1, 2)))  # Diagonal
+        self.assertFalse(
+            self.move_validator.is_valid_move(
+                (0, 1), (0, 3), self.controller.game.current_turn
+            )
+        )  # Two tiles
+        self.assertFalse(
+            self.move_validator.is_valid_move(
+                (0, 1), (1, 2), self.controller.game.current_turn
+            )
+        )  # Diagonal
 
     def test_cannot_move_into_own_den(self):
         """Test pieces cannot move into their own den"""
@@ -370,20 +392,32 @@ class TestController(unittest.TestCase):
         self.controller.game.board.place_piece(piece, (3, 1))
 
         # Try to move into own den
-        self.assertFalse(self.controller.is_valid_move((3, 1), (3, 0)))
+        self.assertFalse(
+            self.move_validator.is_valid_move(
+                (3, 1), (3, 0), self.controller.game.current_turn
+            )
+        )
 
     def test_only_rats_can_enter_water(self):
         """Test only rats can move into water"""
         # Cat trying to enter water
         cat = Piece("Cat", Piece.PLAYER_1)
         self.controller.game.board.place_piece(cat, (1, 2))
-        self.assertFalse(self.controller.is_valid_move((1, 2), (1, 3)))
+        self.assertFalse(
+            self.move_validator.is_valid_move(
+                (1, 2), (1, 3), self.controller.game.current_turn
+            )
+        )
 
         # Rat can enter water
         self.controller.game.board.remove_piece((1, 2))
         rat = Piece("Rat", Piece.PLAYER_1)
         self.controller.game.board.place_piece(rat, (1, 2))
-        self.assertTrue(self.controller.is_valid_move((1, 2), (1, 3)))
+        self.assertTrue(
+            self.move_validator.is_valid_move(
+                (1, 2), (1, 3), self.controller.game.current_turn
+            )
+        )
 
     def test_lion_tiger_river_jump_horizontal(self):
         """Test Lion and Tiger can jump horizontally across river"""
@@ -391,7 +425,11 @@ class TestController(unittest.TestCase):
         self.controller.game.board.place_piece(lion, (0, 4))
 
         # Should be able to jump 3 columns horizontally
-        self.assertTrue(self.controller.is_valid_move((0, 4), (3, 4)))
+        self.assertTrue(
+            self.move_validator.is_valid_move(
+                (0, 4), (3, 4), self.controller.game.current_turn
+            )
+        )
 
     def test_lion_tiger_river_jump_vertical(self):
         """Test Lion and Tiger can jump vertically across river"""
@@ -399,7 +437,11 @@ class TestController(unittest.TestCase):
         self.controller.game.board.place_piece(tiger, (1, 2))
 
         # Should be able to jump 4 rows vertically
-        self.assertTrue(self.controller.is_valid_move((1, 2), (1, 6)))
+        self.assertTrue(
+            self.move_validator.is_valid_move(
+                (1, 2), (1, 6), self.controller.game.current_turn
+            )
+        )
 
     def test_river_jump_blocked_by_rat(self):
         """Test Lion/Tiger cannot jump if rat is in the path"""
@@ -410,7 +452,11 @@ class TestController(unittest.TestCase):
         self.controller.game.board.place_piece(rat, (1, 4))
 
         # Jump should be blocked by rat
-        self.assertFalse(self.controller.is_valid_move((0, 4), (3, 4)))
+        self.assertFalse(
+            self.move_validator.is_valid_move(
+                (0, 4), (3, 4), self.controller.game.current_turn
+            )
+        )
 
     def test_check_win_condition_den(self):
         """Test winning by entering opponent's den"""
@@ -451,10 +497,18 @@ class TestController(unittest.TestCase):
         self.controller.game.board.place_piece(piece, (3, 3))
 
         self.controller.game.current_turn = 0
-        self.assertTrue(self.controller.is_valid_move((3, 3), (3, 4)))
+        self.assertTrue(
+            self.move_validator.is_valid_move(
+                (3, 3), (3, 4), self.controller.game.current_turn
+            )
+        )
 
         self.controller.game.current_turn = 1
-        self.assertFalse(self.controller.is_valid_move((3, 3), (3, 4)))
+        self.assertFalse(
+            self.move_validator.is_valid_move(
+                (3, 3), (3, 4), self.controller.game.current_turn
+            )
+        )
 
 
 class TestIntegration(unittest.TestCase):
@@ -464,6 +518,7 @@ class TestIntegration(unittest.TestCase):
         """Set up test game"""
         self.controller = Controller()
         self.controller.game = Game("Player1", "Player2")
+        self.controller.move_validator = MoveValidator(self.controller.game.board)
 
     def test_complete_move_sequence(self):
         """Test a sequence of valid moves"""
