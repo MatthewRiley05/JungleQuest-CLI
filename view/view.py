@@ -53,7 +53,7 @@ class View:
 
     def get_user_input(self):
         return input(
-            "\nEnter your move (e.g., 'A1 to B2'), 'undo' to undo last move, or 'quit' to exit: "
+            "\nEnter your move (e.g: A1 to A2, B4 to C4), 'undo' to undo last move, or 'quit' to exit: "
         )
 
     def display_message(self, message):
