@@ -110,7 +110,7 @@ class View:
             User input string (stripped of whitespace)
         """
         return input(
-            "\nEnter your move (e.g: A1 to A2, B4 to C4), 'undo' to undo last move, or 'quit' to exit: "
+            "\nEnter move (e.g: A1 to A2, B4 to C4), 'save', 'record', 'undo', or 'quit': "
         )
 
     def display_message(self, message: str) -> None:
