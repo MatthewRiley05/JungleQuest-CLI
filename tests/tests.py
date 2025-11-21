@@ -265,7 +265,7 @@ class TestPlayer(unittest.TestCase):
         self.assertIn(piece, player.pieces)
 
     def test_get_pieces(self):
-        """Test getting player's pieces"""
+        """ """
         player = Player("Charlie")
         piece1 = Piece("Rat", Piece.PLAYER_1)
         piece2 = Piece("Cat", Piece.PLAYER_1)
@@ -307,7 +307,7 @@ class TestController(unittest.TestCase):
         self.move_validator = MoveValidator(self.controller.game.board)
 
     def test_convert_to_coordinates(self):
-        """Test coordinate conversion from algebraic notation"""
+        """Test converting alphanumeric coordinates to cartesian coordinates"""
         # Test valid coordinates
         self.assertEqual(self.move_parser.convert_to_coordinates("A1"), (0, 0))
         self.assertEqual(self.move_parser.convert_to_coordinates("G9"), (6, 8))
