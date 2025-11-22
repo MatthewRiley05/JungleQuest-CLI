@@ -141,6 +141,49 @@ class Controller:
                 print(f"Random name generated: {random_name}")
                 return random_name
 
+    def display_help(self):
+        """Display available commands and their usage."""
+        print("\n" + "=" * 60)
+        print("AVAILABLE COMMANDS")
+        print("=" * 60)
+        print("\nGAME COMMANDS:")
+        print("  <move>        Make a move on the board")
+        print("                Syntax: <column><row> to <column><row>")
+        print("                Example: A1 to A2, B4 to C4")
+        print("                Effect: Moves your piece from the first position")
+        print("                        to the second position (if valid)")
+        print()
+        print("  help          Display this help message")
+        print("                Syntax: help")
+        print("                Effect: Shows all available commands and their usage")
+        print()
+        print("  undo          Undo the last move")
+        print("                Syntax: undo")
+        print("                Effect: Reverts the last move made")
+        print(f"                        (Maximum {self.MAX_UNDOS} undos per game)")
+        print()
+        print("  save          Save the current game state")
+        print("                Syntax: save")
+        print("                Effect: Prompts for a filename and saves the game")
+        print("                        to a .jungle file for later loading")
+        print()
+        print("  record        Save a record of all moves")
+        print("                Syntax: record")
+        print("                Effect: Prompts for a filename and saves the move")
+        print("                        history to a .record file for replay")
+        print()
+        print("  quit          Exit the game")
+        print("                Syntax: quit")
+        print("                Effect: Prompts to save before exiting the game")
+        print()
+        print("GAME RULES:")
+        print("  • Move pieces one tile horizontally or vertically")
+        print("  • Lions and Tigers can jump over rivers")
+        print("  • Only Rats can enter water tiles")
+        print("  • Capture opponent pieces based on rank")
+        print("  • Win by entering opponent's den or capturing all pieces")
+        print("=" * 60 + "\n")
+
     def play_game(self):
         game_over = False
         while not game_over:
@@ -160,6 +203,11 @@ class Controller:
                     break
                 else:
                     continue
+
+            # Handle help command
+            if move_lower == "help":
+                self.display_help()
+                continue
 
             # Handle save command
             if move_lower == "save":
